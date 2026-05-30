@@ -4,11 +4,25 @@ A production-grade Python implementation of a binary Merkle Tree for verifying r
 
 ---
 
+## 🖥️ Live Web UI Dashboard & Tamper Playground
+This project features a stunning, premium Web UI Dashboard built from scratch using HTML5, glassmorphism-based CSS, and pure client-side JavaScript powered by Ethers.js. 
+
+### **Live Link**: [https://bhargavitalatam.github.io/Merkle-Tree/](https://bhargavitalatam.github.io/Merkle-Tree/)
+
+#### Key Features:
+- **Real-Time Blockchain Querying**: Paste any block number and fetch transactions directly from rate-limit-friendly public Ethereum RPC providers.
+- **Accurate Patricia Trie Reconstruction**: Re-serializes EIP-2718 typed transaction payloads and reconstructs the recursive Modified Merkle Patricia Trie (MPT) completely in-browser, verifying that the generated root matches the block header's `transactionsRoot` down to the single byte.
+- **Interactive Sibling Proof Explorer**: Select any transaction from the block to trace and view its cryptographic inclusion proof path.
+- **Interactive Tamper Playground**: Manually modify any transaction's raw bytes or sibling node RLP structures in real-time. The verification panel dynamically glows crimson, demonstrating cryptographically secure tamper evidence!
+
+---
+
 ## 📖 Overview
 Every Ethereum block header contains a single 32-byte value — the `transactionsRoot` — that is a cryptographic fingerprint of every transaction in the block. This project builds the data structure that generates and verifies that fingerprint: a binary Merkle Tree.
 
 | Part | Module | Description |
 | :--- | :--- | :--- |
+| **Dashboard** | `docs/` | Interactive premium SPA Dashboard (HTML/CSS/JS) |
 | **Part 1** | `src/part1_tree.py` | Pure-Python `MerkleTree` class, proof generation, standalone verifier |
 | **Part 2** | `src/part2_fetch.py` | Fetches real Ethereum blocks via JSON-RPC (Archive endpoints) |
 | **Part 3** | `src/part3_verify.py` | Reconstructs transactions root, generates & verifies inclusion proofs |
