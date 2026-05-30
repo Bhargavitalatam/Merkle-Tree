@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: merkle_app
+    volumes:
+      - .:/app
+    environment:
+      - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL:-https://ethereum-rpc.publicnode.com}
+
+  tests:
+    build: .
+    container_name: merkle_tests
+    volumes:
+      - .:/app
+    command: ["pytest", "tests/", "-v", "--cov=src"]

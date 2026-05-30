@@ -1,0 +1,20 @@
+# Environment Files (sensitive or host-specific configurations)
+.env
+
+# Python specific files and directories
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Test coverage caches
+.coverage
+htmlcov/
+.pytest_cache
