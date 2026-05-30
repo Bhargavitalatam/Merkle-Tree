@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Ethereum Merkle Tree Verifier</title>
+    <!-- Outfit Typography from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Sleek CSS Styling -->
+    <link rel="stylesheet" href="index.css">
+    <!-- Ethers.js v6 CDN for standard RLP/Keccak encoding and provider connections -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-shell">
+        <!-- Header Panel -->
+        <header class="dashboard-header glass">
+            <div class="header-logo">
+                <i class="fa-solid fa-circle-nodes glow-icon"></i>
+                <div class="logo-text">
+                    <h1>Ethereum Merkle Verifier</h1>
+                    <p>Reconstruct and verify transaction inclusion roots in real-time</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <div class="status-indicator">
+                    <span class="pulse-dot green"></span>
+                    <span id="rpc-status-text">Connecting to RPC...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="dashboard-content">
+            <!-- Left Side: Controls & Block Info -->
+            <section class="content-left">
+                <!-- RPC & Block Form Panel -->
+                <div class="panel glass">
+                    <h2 class="panel-title"><i class="fa-solid fa-sliders"></i> Control Panel</h2>
+                    <div class="form-group">
+                        <label for="rpc-endpoint"><i class="fa-solid fa-server"></i> JSON-RPC Endpoint</label>
+                        <input type="text" id="rpc-endpoint" value="https://ethereum-rpc.publicnode.com" placeholder="https://eth-mainnet.g.alchemy.com/v2/...">
+                    </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="block-number"><i class="fa-solid fa-cube"></i> Block Number</label>
+                            <input type="text" id="block-number" value="20000000" placeholder="e.g. 20000000 or latest">
+                        </div>
+                        <button id="btn-fetch" class="btn-primary">
+                            <i class="fa-solid fa-arrow-down-up-lock"></i> Reconstruct
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Block Inspector Panel -->
+                <div class="panel glass" id="block-inspector-panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-magnifying-glass-chart"></i> Block Header Inspector</h2>
+                    <div class="inspector-grid">
+                        <div class="inspector-card">
+                            <span class="card-label">Height</span>
+                            <span class="card-value" id="inspect-height">-</span>
+                        </div>
+                        <div class="inspector-card">
+                            <span class="card-label">Transaction Count</span>
+                            <span class="card-value" id="inspect-tx-count">-</span>
+                        </div>
+                        <div class="inspector-card full-width">
+                            <span class="card-label">Timestamp</span>
+                            <span class="card-value" id="inspect-time">-</span>
+                        </div>
+                        <div class="inspector-card full-width">
+                            <span class="card-label">Transactions Root (Header)</span>
+                            <span class="card-value hash-text" id="inspect-tx-root">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Transactions List & Proof Verification -->
+            <section class="content-right">
+                <!-- Transactions Panel -->
+                <div class="panel glass" id="transactions-panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-list-ul"></i> Transaction Ledger</h2>
+                    <div class="tx-list-wrapper">
+                        <table class="tx-table">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Tx Hash</th>
+                                    <th>Type</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tx-table-body">
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <i class="fa-solid fa-circle-info"></i> Reconstruct a block to load transactions
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cryptographic Prover & Tamper Playground -->
+                <div class="panel glass" id="prover-panel" style="display: none;">
+                    <h2 class="panel-title"><i class="fa-solid fa-shield-halved"></i> Verification & Tamper Playground</h2>
+                    <div class="prover-status card-glow-success" id="prover-status-panel">
+                        <div class="prover-status-header">
+                            <span class="status-badge" id="proof-badge"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                            <h3 id="target-tx-hash-title">0xbb4b...</h3>
+                        </div>
+                        <div class="prover-root-grid">
+                            <div>
+                                <span class="card-label">Header transactionsRoot</span>
+                                <span class="card-value hash-text smaller" id="proof-expected-root">-</span>
+                            </div>
+                            <div>
+                                <span class="card-label">Reconstructed MPT Root</span>
+                                <span class="card-value hash-text smaller" id="proof-calculated-root">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Proof Path Tracker -->
+                    <div class="proof-path-container">
+                        <h3><i class="fa-solid fa-route"></i> MPT Inclusion Proof Path</h3>
+                        <div class="proof-steps" id="proof-steps-container">
+                            <!-- Steps filled by js -->
+                        </div>
+                    </div>
+
+                    <!-- Playground Controls -->
+                    <div class="playground-controls">
+                        <h3><i class="fa-solid fa-circle-nodes"></i> Tamper Playground</h3>
+                        <div class="form-group">
+                            <label for="tamper-tx-data"><i class="fa-solid fa-file-signature"></i> Raw Transaction Bytes</label>
+                            <textarea id="tamper-tx-data" rows="3" class="hash-text smaller"></textarea>
+                        </div>
+                        <div class="playground-action-row">
+                            <span class="playground-hint"><i class="fa-solid fa-circle-exclamation"></i> Modify the bytes above to observe cryptographic tamper evidence!</span>
+                            <button id="btn-reset-tamper" class="btn-secondary"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Application Logic Conductor -->
+    <script src="app.js"></script>
+</body>
+</html>
